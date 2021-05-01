@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "type": "shell",
+        "label": "Build Debug",
+        "command": "g++ -c src/*.cpp -c src/sdl2/*.cpp -std=c++14 -g -Wall -m64 -I include -I libs/SDL2-w64/include && g++ *.o -o bin/debug/main -L libs/SDL2-w64/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer && start bin/debug/main",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      },
+      {
+        "type": "shell",
+        "label": "Build Release",
+        "command": "g++ -c src/*.cpp -c src/sdl2/*.cpp -std=c++14 -O3 -Wall -m64 -I include -I libs/SDL2-w64/include && g++ *.o -o bin/release/main -s -L libs/SDL2-w64/lib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer && start bin/release/main"
+      }
+    ]
+  }
