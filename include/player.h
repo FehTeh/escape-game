@@ -15,7 +15,7 @@ class Player {
 public:
     PlayerMovement getMovement();
     void setMovement(PlayerMovement direction);
-    TextureKey getChar(int interval);
+    TextureKey getTexture(int interval);
 private:
     PlayerMovement movement = PlayerMovement::StandBy;
     PlayerMovement prevMovement = PlayerMovement::StandBy;

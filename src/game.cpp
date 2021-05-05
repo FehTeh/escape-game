@@ -8,96 +8,167 @@
 
 #define TileSize 32
 
+void Game::start()
+{
+    generate(30);
+    interval = 7000;
+}
+
 GameEvent Game::update(WindowManager& window, ResourceManager& resource, SoundManager& sound, ControllerManager& controller)
 {
     interval--;
 
-    int offsetX = window.getWidth() / 2;
-    int offsetY = window.getHeight() / 2;
-
-    int playerX = offsetX - (TileSize / 2);
-    int playerY = offsetY - (TileSize / 2);
+    int playerX = window.getWidth() / 2 - (TileSize / 2);
+    int playerY = window.getHeight() / 2 - (TileSize / 2);
 
     GameKey key = controller.getKeyPressed();
 
-    window.clear();
-
-    int i,j;/*i On behalf of the line, j On behalf of the column, i*n+j Is the ordinal number of that point in the array */
-    for(i=0 ;i < size;i++)
+    if(key == GameKey::B)
     {
-        for(j=0; j < size; j++)
+        if(!backgroundPressed)
         {
-            /*int lenght_x = 0;
-            int lenght_y = 0;
-            if(player_x > j)
-            {
-                lenght_x = player_x - j;
-            }
-            else 
-            {
-                lenght_x = j - player_x;
-            }
-
-            if(player_y > i)
-            {
-                lenght_y = player_y - i;
-            }
-            else 
-            {
-                lenght_y = i - player_y;
-            }*/
-
-            //if(lenght_y < 3 && lenght_x < 3)
-            //{
-                if(map[i * size + j] == '#')
-                {
-                    window.renderTexture(j * TileSize + offsetX - (TileSize / 2) + moveX, i * TileSize + offsetY - (TileSize / 2) + moveY, resource.getTexture(TextureKey::Wall));
-                }
-
-                if(map[i * size + j] == '.')
-                {
-                    window.renderTexture(j * TileSize + offsetX - (TileSize / 2) + moveX, i * TileSize + offsetY - (TileSize / 2) + moveY, resource.getTexture(TextureKey::Floor));
-                }
-            //}
+            backgroundPressed = true;
+            if(background == ColorKey::Blue)
+                background = ColorKey::Red;
+            else if(background == ColorKey::Red)
+                background = ColorKey::Green;
+            else if(background == ColorKey::Green)
+                background = ColorKey::Blue;
         }
     }
 
-    if(player.getMovement() != PlayerMovement::StandBy)
+    if(key == GameKey::None)
     {
-        if(moveX % TileSize == 0 && moveY % TileSize == 0)
+        backgroundPressed = false;
+    }
+
+    window.clear();
+
+    if(loading)
+    {
+    	window.renderTextCenter(0, sin(window.getTicks()/100) * 2 - 4, "Escape!!", resource.getFont(FontKey::Font24), resource.getColor(ColorKey::White));
+    }
+    else
+    {
+        if(interval <= 0)
         {
-            player.setMovement(PlayerMovement::StandBy);
+            if(abs(interval) / 50 > 5)
+            {
+                return GameEvent::Stopped;
+            }
+
+            window.renderTextCenter(0, sin(window.getTicks()/100) * 2 - 4, "GAMEOVER", resource.getFont(FontKey::Font24), resource.getColor(ColorKey::White));    
         }
-        else
+        else 
         {
-            move(player.getMovement());
+            renderLevel(window, resource);
+
+            if(player.getMovement() != PlayerMovement::StandBy)
+            {
+                if(moveX % TileSize == 0 && moveY % TileSize == 0)
+                {
+                    player.setMovement(PlayerMovement::StandBy);
+                }
+                else
+                {
+                    move(player.getMovement());
+                    //sound.playSound(resource.getSound(SoundKey::FootStep));
+                }
+            }
+            
+            if(key != GameKey::None && moveX % TileSize == 0 && moveY % TileSize == 0)
+            {
+                player.setMovement(mapKeyToMovement(key));
+
+                if(canMove(mapKeyToMovement(key)))
+                {
+                    move(player.getMovement());
+                    sound.playSound(resource.getSound(SoundKey::FootStep));
+                }
+            }
+
+            if(abs(moveX) == size * 32 - TileSize)
+            {
+                generate(size + 10);
+                interval += 1000;
+            }
+
+            //Render Player
+            window.renderTexture(playerX, playerY, resource.getTexture(player.getTexture(interval / 7)));
+
+            //Render statusbar
+            renderStatusBar(window, resource);
         }
     }
     
-    if(key != GameKey::None && moveX % TileSize == 0 && moveY % TileSize == 0 && canMove(mapKeyToMovement(key)))
+    if(interval > 0 && interval / 50 <= 10)
     {
-        player.setMovement(mapKeyToMovement(key));
-        move(player.getMovement());
+        window.fade(100 - (interval / 50) * 10);
     }
-
-    /*if(abs(moveX) == 320)
-    {
-        return GameEvent::LevelUp;
-    }*/
-
-    //Render Player
-    window.renderTexture(playerX, playerY, resource.getTexture(player.getChar(interval / 25)));
-
-    //Render Powerup
-    window.renderRectangle(window.getWidth() - (TileSize + (TileSize / 2)), TileSize / 2, TileSize, TileSize, resource.getColor(ColorKey::Red));
 
     window.display();
 
     return GameEvent::Running;
 }
 
+/* Private */
+void Game::renderLevel(WindowManager& window, ResourceManager& resource)
+{
+    int offsetX = window.getWidth() / 2;
+    int offsetY = window.getHeight() / 2;
+
+    int i,j;/*i On behalf of the line, j On behalf of the column, i*n+j Is the ordinal number of that point in the array */
+    for(i=0 ;i < size;i++)
+    {
+        for(j=0; j < size; j++)
+        {
+            int x = j * TileSize + offsetX - (TileSize / 2) + moveX; 
+            int y = i * TileSize + offsetY - (TileSize / 2) + moveY;
+
+            window.renderRectangle(x, y, TileSize, TileSize, resource.getColor(background));
+
+            if(map[i * size + j] == '#')
+            {
+                TextureKey t = TextureKey::WallTop;
+
+                if(map[(i + 1) * size + j] == '.')
+                {
+                    t = TextureKey::Wall;
+                }
+
+                window.renderTexture(x, y, resource.getTexture(t));
+            }
+        }
+    }
+}
+
+void Game::renderStatusBar(WindowManager& window, ResourceManager& resource)
+{
+    std::string zeros = "";
+    int time = interval / 50;
+
+    if(time < 100)
+    {
+        if(time < 10)
+        {
+            zeros = "00";
+        }
+        else
+        {
+            zeros = "0";
+        }
+    }
+
+    std::string s = std::to_string(interval / 50);
+	s = "Time: " + zeros + s;
+
+    window.renderText(window.getWidth() - 100, TileSize / 2, s.c_str(), resource.getFont(FontKey::Font16), resource.getColor(ColorKey::White));
+}
+
 void Game::generate(int p_s)
 {
+    loading = true;
+
     size = p_s;
 
     int i,j,k;  /* counter */
@@ -171,9 +242,10 @@ void Game::generate(int p_s)
     moveY = -TileSize;
 
     showmaze();
+
+    loading = false;
 }
 
-/* Private */
 void Game::showmaze()
 {
     char* p = map;

@@ -10,16 +10,18 @@
 enum class GameEvent
 {
     Running = 1,
-    Timeout,
-    LevelUp
+    Stopped
 };
 
 class Game {
 public:
     GameEvent update(WindowManager& window, ResourceManager& resource, SoundManager& sound, ControllerManager& controller);
-	void generate(int p_s);
+	void start();
 private:
+    void renderLevel(WindowManager& window, ResourceManager& resource);
+    void renderStatusBar(WindowManager& window, ResourceManager& resource);
     void showmaze();
+    void generate(int p_s);
     void move(PlayerMovement movement);
     bool canMove(PlayerMovement movement);
     PlayerMovement mapKeyToMovement(GameKey key);
@@ -29,8 +31,13 @@ private:
     int moveX;
     int moveY;
 
-    int interval = 0;
+    int interval = 600;
 
     int size;
     char* map;
+
+    bool loading;
+
+    ColorKey background = ColorKey::Green;
+    bool backgroundPressed;
 };

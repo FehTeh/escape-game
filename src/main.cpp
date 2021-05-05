@@ -4,6 +4,7 @@
 #include <cmath>
 #include <stdlib.h>
 #include <string.h>
+#include <thread>
 
 #include "windowmanager.h"
 #include "soundmanager.h"
@@ -42,16 +43,25 @@ void gameLoop()
 			if(event == MenuEvent::AType)
 			{
 				inMenu = false;
-				game.generate(50);
+				game.start();
+			}
+			if(event == MenuEvent::BType)
+			{
+				inMenu = false;
+				game.start();
+			}
+			if(event == MenuEvent::Exit)
+			{
+				running = false;
 			}
 		}
 		else 
 		{
 			GameEvent event = game.update(window, resources, sound, controller);
 
-			if(event == GameEvent::LevelUp)
+			if(event == GameEvent::Stopped)
 			{
-				game.generate(50);
+				inMenu = true;
 			}
 		}
 	}

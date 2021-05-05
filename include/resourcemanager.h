@@ -9,10 +9,11 @@
 
 enum class TextureKey
 {
-    Floor,
     Wall,
+    WallTop,
     Char_Front,
     Char_Front_2,
+    Char_Front_3,
     Char_Back,
     Char_Back_2,
     Char_Right,
@@ -23,6 +24,8 @@ enum class TextureKey
 
 enum class SoundKey
 {
+    MenuSelection,
+    MenuSelected,
     FootStep
 };
 
@@ -41,6 +44,8 @@ enum class ColorKey
 {
     White,
     Red,
+    Green,
+    Blue,
     Black
 };
 
@@ -54,9 +59,9 @@ public:
     SDL_Color getColor(ColorKey colorKey);
     void cleanUp();
 private:
-    SDL_Texture* textures[10];
-    Mix_Chunk* sounds[1];
+    SDL_Texture* textures[11];
+    Mix_Chunk* sounds[3];
     Mix_Music* musics[1];
     TTF_Font* fonts[2];
-    SDL_Color colors[3];
+    SDL_Color colors[5];
 };

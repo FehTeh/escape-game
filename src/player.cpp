@@ -18,14 +18,14 @@ void Player::setMovement(PlayerMovement direction)
     movement = direction;
 }
 
-TextureKey Player::getChar(int interval)
+TextureKey Player::getTexture(int interval)
 {
     PlayerMovement toRender = movement;
 
     if(movement == PlayerMovement::StandBy)
     {
         toRender = prevMovement;
-        interval = 1;
+        interval = 0;
     }
 
     switch(toRender)
@@ -37,6 +37,8 @@ TextureKey Player::getChar(int interval)
         case PlayerMovement::Up:
             return interval % 2 == 0 ? TextureKey::Char_Back_2 : TextureKey::Char_Back;
         default:
-            return interval % 2 == 0 ? TextureKey::Char_Front_2 : TextureKey::Char_Front;
+            return interval % 2 == 0 ? TextureKey::Char_Front : 
+                   interval % 3 == 0 ? TextureKey::Char_Front_3 : 
+                                       TextureKey::Char_Front_2;
     }
 }
